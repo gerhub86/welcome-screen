@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Welcome</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@200;300;400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A96E;
+    --gold-light: #E8D5B0;
+    --deep: #0A0A0A;
+    --surface: #111111;
+    --text: #F5F0E8;
+    --muted: #8A8070;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    overflow: hidden;
+  }
+
+  /* ── LOADING SCREEN ── */
+  #loader {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--deep);
+    z-index: 100;
+    transition: opacity 0.8s ease;
+  }
+  #loader.fade-out { opacity: 0; pointer-events: none; }
+
+  .logo-ring {
+    width: 80px; height: 80px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 2rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .logo-ring::before {
+    content: '';
+    width: 60px; height: 60px;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 50%;
+    position: absolute;
+    animation: pulse 2s ease-in-out infinite 0.3s;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+  .logo-inner {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+  #loader-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── ERROR SCREEN ── */
+  #error-screen {
+    display: none;
+    position: fixed; inset: 0;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: var(--deep);
+  }
+  #error-screen.visible { display: flex; }
+  #error-screen h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300;
+    color: var(--gold); margin-bottom: 1rem;
+  }
+  #error-screen p { color: var(--muted); font-size: 0.9rem; line-height: 1.8; }
+
+  /* ── WELCOME OVERLAY ── */
+  #welcome {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--deep);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+  }
+  #welcome.visible { opacity: 1; pointer-events: auto; }
+  #welcome.hidden { opacity: 0; pointer-events: none; }
+
+  .welcome-line {
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: none;
+  }
+  .welcome-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .welcome-divider {
+    width: 60px; height: 1px;
+    background: var(--gold);
+    margin: 2rem auto;
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .welcome-sub {
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes expandLine {
+    to { opacity: 1; transform: scaleX(1); }
+  }
+  .anim-1 { animation: slideUp 0.8s ease forwards 0.2s; }
+  .anim-2 { animation: slideUp 1s ease forwards 0.6s; }
+  .anim-3 { animation: expandLine 0.8s ease forwards 1.2s; }
+  .anim-4 { animation: slideUp 0.8s ease forwards 1.6s; }
+
+  /* ── VIDEO SCREEN ── */
+  #video-screen {
+    position: fixed; inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+    z-index: 10;
+  }
+  #video-screen.visible { opacity: 1; pointer-events: auto; }
+
+  video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  /* ── CORNER DECORATION ── */
+  .corner {
+    position: fixed;
+    width: 40px; height: 40px;
+    border-color: rgba(201,169,110,0.25);
+    border-style: solid;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .corner-tl { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 24px; right: 24px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 24px; left: 24px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
+</style>
+</head>
+<body>
+
+<!-- Corner decorations -->
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- Loading screen -->
+<div id="loader">
+  <div class="logo-ring">
+    <span class="logo-inner">&#x2665;</span>
+  </div>
+  <p id="loader-text">Loading&hellip;</p>
+</div>
+
+<!-- Error screen -->
+<div id="error-screen">
+  <h2>Guest Not Found</h2>
+  <p>This QR code doesn't match any guest in our list.<br>Please check with the event staff.</p>
+</div>
+
+<!-- Welcome overlay -->
+<div id="welcome">
+  <p class="welcome-line anim-1">You are warmly welcomed</p>
+  <h1 class="welcome-name anim-2" id="guest-name">Guest</h1>
+  <div class="welcome-divider anim-3"></div>
+  <p class="welcome-sub anim-4" id="event-subtitle">We are delighted to have you here</p>
+</div>
+
+<!-- Video player -->
+<div id="video-screen">
+  <video id="player" playsinline></video>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIGURATION — Edit this section
+// ─────────────────────────────────────────────
+
+const CONFIG = {
+  // How long to show the welcome screen before the video plays (milliseconds)
+  welcomeDuration: 4000,
+
+  // Your event subtitle shown on welcome screen
+  eventSubtitle: "We are delighted to have you here",
+
+  // ── GUEST DATA ──
+  // Format: "guest_id": { name: "Display Name", video: "GOOGLE_DRIVE_FILE_ID" }
+  //
+  // To get a Google Drive File ID from a share link:
+  // Share link: https://drive.google.com/file/d/1aBcDeFgHiJkLmNoPqRsTuVwXyZ/view
+  // File ID is:                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  //
+  // Make sure the file is shared as "Anyone with the link can view"
+
+  guests: {
+    "smith-001": {
+      name: "The Smith Family",
+      video: "1crpBJ2pWS4DfpKLibcasEc3R3Atbm7Ga"
+    },
+    "jones-002": {
+      name: "The Jones Family",
+      video: "1ymTbMbPL9GeP70iBSKS1Xn09y8JvCfCH"
+    },
+    "garcia-003": {
+      name: "Maria Garcia",
+      video: "1pmVthC3rYBAl0LWX7yetRb1kmjF1y1RJ"
+    }
+    // Add more guests here following the same pattern
+  }
+};
+
+// ─────────────────────────────────────────────
+// APP LOGIC — No need to edit below this line
+// ─────────────────────────────────────────────
+
+function getGuestId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('id') || params.get('guest') || params.get('g');
+}
+
+function getDriveStreamUrl(fileId) {
+  // Uses Google Drive's direct streaming URL
+  return `https://drive.google.com/uc?export=download&id=${fileId}`;
+}
+
+function showError() {
+  document.getElementById('loader').classList.add('fade-out');
+  setTimeout(() => {
+    document.getElementById('error-screen').classList.add('visible');
+  }, 800);
+}
+
+function showWelcomeThenPlay(guest) {
+  const loader = document.getElementById('loader');
+  const welcome = document.getElementById('welcome');
+  const videoScreen = document.getElementById('video-screen');
+  const player = document.getElementById('player');
+
+  // Set guest name and subtitle
+  document.getElementById('guest-name').textContent = guest.name;
+  document.getElementById('event-subtitle').textContent = CONFIG.eventSubtitle;
+
+  // Set up video source
+  player.src = getDriveStreamUrl(guest.video);
+  player.load();
+
+  // Fade out loader, show welcome
+  loader.classList.add('fade-out');
+  setTimeout(() => {
+    welcome.classList.add('visible');
+  }, 800);
+
+  // After welcomeDuration, transition to video
+  setTimeout(() => {
+    welcome.classList.add('hidden');
+    videoScreen.classList.add('visible');
+    player.play().catch(err => {
+      console.warn('Autoplay blocked. Tap to play.', err);
+      // Add tap-to-play fallback
+      videoScreen.addEventListener('click', () => player.play(), { once: true });
+      const hint = document.createElement('div');
+      hint.textContent = 'Tap to play';
+      hint.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);font-size:0.8rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(201,169,110,0.7);z-index:20;';
+      document.body.appendChild(hint);
+    });
+  }, CONFIG.welcomeDuration);
+}
+
+// ── INIT ──
+const guestId = getGuestId();
+
+if (!guestId) {
+  showError();
+} else {
+  const guest = CONFIG.guests[guestId.toLowerCase()];
+  if (!guest) {
+    showError();
+  } else {
+    showWelcomeThenPlay(guest);
+  }
+}
+</script>
+</body>
+</html>
